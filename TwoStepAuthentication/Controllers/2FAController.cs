@@ -10,7 +10,6 @@ namespace TwoStepAuthentication.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class _2FAController : ControllerBase
     {
         private readonly UserManager<AppUser> _userManager;
@@ -23,6 +22,7 @@ namespace TwoStepAuthentication.Controllers
             _auth = auth;
         }
 
+        [Authorize]
         [HttpPost("enable-2fa")]
         public async Task<IActionResult> EnableTwoFactorAuthentication()
         {
@@ -66,6 +66,7 @@ namespace TwoStepAuthentication.Controllers
             });
         }
 
+        [Authorize]
         [HttpPost("disable-2fa")]
         public async Task<IActionResult> DisableTwoFactorAuthentication()
         {

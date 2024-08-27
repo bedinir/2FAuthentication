@@ -55,7 +55,7 @@ namespace TwoStepAuthentication.Services
 
         public async Task<bool> DisableTwoFactorAuthentication(AppUser user)
         {
-            user.TwoFactorEnabled = false;
+            user.Is2FAEnabled = false;
             user.TwoFactorCode = null;
             await _userManager.UpdateAsync(user);
 
