@@ -36,7 +36,7 @@ namespace TwoStepAuthentication.Services
                     Message = "Invalid email or password."
                 };
             }
-            if (user.TwoFactorEnabled)
+            if (user.Is2FAEnabled)
             {
                 var code = _factorAuthentication.GenerateAndSendTwoFactorTokenAsync(user);
                 return new ResponseData<LoginResponse>

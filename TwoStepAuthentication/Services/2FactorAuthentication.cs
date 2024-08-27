@@ -81,7 +81,7 @@ namespace TwoStepAuthentication.Services
         public async Task<string> GenerateAndSendTwoFactorTokenAsync(AppUser user)
         {
             var token = await _userManager.GenerateTwoFactorTokenAsync(user, TokenOptions.DefaultEmailProvider);
-            if(string.IsNullOrEmpty(token))
+            if(!string.IsNullOrEmpty(token))
             {
                 await _emailSender.SendEmailAsync(user.Email, "Your 2FA Code", $"Your 2FA code is {token}");
             }
