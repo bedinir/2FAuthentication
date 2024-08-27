@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using TwoStepAuthentication.Models;
-using TwoStepAuthentication.Services;
+using TwoStepAuthentication.Services.Interfaces;
 
 namespace TwoStepAuthentication.Controllers
 {
@@ -14,6 +14,7 @@ namespace TwoStepAuthentication.Controllers
     public class _2FAController : ControllerBase
     {
         private readonly UserManager<AppUser> _userManager;
+        private readonly SignInManager<AppUser> _signInManager;
         private readonly I2FactorAuthentication _auth;
 
         public _2FAController(UserManager<AppUser> userManager, I2FactorAuthentication auth)
@@ -50,11 +51,19 @@ namespace TwoStepAuthentication.Controllers
             }
 
             var result = await _auth.VerifyTwoFactorCode(user, request.Code);
-            if (result)
+            if (!result)
             {
-                return Ok("2FA verification successful.");
+                return Unauthorized("Invalid 2FA code.");
             }
-            return Unauthorized("Invalid 2FA code.");
+
+            //var token = await _signInManager.CreateUserPrincipalAsync(user);
+            var token = _auth.CreateToken(user).Result;
+
+            return Ok(new
+            {
+                Message = "2FA verification successful.",
+                Token = token // Return the generated token
+            });
         }
 
         [HttpPost("disable-2fa")]

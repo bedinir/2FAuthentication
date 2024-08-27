@@ -8,6 +8,7 @@ using System.Security.Claims;
 using TwoStepAuthentication;
 using TwoStepAuthentication.Models;
 using TwoStepAuthentication.Services;
+using TwoStepAuthentication.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,12 +22,17 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddAuthentication()
                 .AddBearerToken(IdentityConstants.BearerScheme);
 
+builder.Services
+    .AddAuthentication(IdentityConstants.ApplicationScheme)
+    .AddIdentityCookies();
+
 builder.Services.AddSendGrid(options =>
     options.ApiKey = builder.Configuration.GetSection("SendGridKey:SendGridKey").Value
 );
 
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 builder.Services.AddScoped<I2FactorAuthentication, _2FactorAuthentication>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddAuthorizationBuilder();
 
@@ -65,7 +71,7 @@ builder.Services.Configure<IdentityOptions>(opt =>
 
 var app = builder.Build();
 
-app.MapIdentityApi<AppUser>();
+//app.MapIdentityApi<AppUser>();
 
 app.Map("/", (ClaimsPrincipal user) => $"Hello {user.Identity!.Name} ")
     .RequireAuthorization();
@@ -78,6 +84,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 
