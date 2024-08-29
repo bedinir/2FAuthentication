@@ -23,7 +23,7 @@
               <label for="floatingPassword">Password</label>
             </div>
             <button class="w-100 mb-2 btn btn-lg rounded-3 btn-primary" type="submit">Create an account</button>
-            <small class="text-body-secondary">Already a member? <a href="#">Login now</a></small>
+            <small class="text-body-secondary">Already a member? <a [routerLink]="['/login']" routerLinkActive="router-link-active">Login now</a></small>
             <hr class="my-4">
             <h2 class="fs-5 fw-bold mb-3">Or use a third-party</h2>
             <button class="w-100 py-2 mb-2 btn btn-outline-secondary rounded-3" type="submit">
