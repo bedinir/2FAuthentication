@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNet.Identity;
+using Microsoft.AspNetCore.Mvc;
 using TwoStepAuthentication.Models;
 using TwoStepAuthentication.Services;
 using TwoStepAuthentication.Services.Interfaces;
@@ -19,37 +20,54 @@ namespace TwoStepAuthentication.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginRequest request)
+        public async Task<ResponseData<LoginResponse>> Login([FromBody] LoginRequest request)
         {
             if(!ModelState.IsValid)
             {
-                return BadRequest("Invalid login request.");
+                return new ResponseData<LoginResponse>
+                {
+                    Success = false,
+                    Message = "Invalid login request."
+                }; 
             }
 
             var response= await _authService.Login(request);
             if(!response.Success)
             {
-                return Unauthorized(response.Message);
+                return new ResponseData<LoginResponse>
+                {
+                    Success = false,
+                    Message = response.Message
+                };
             }
 
             if (response.Data.Is2FAEnabled)
             {
-                return Ok(new
+                return new ResponseData<LoginResponse>
                 {
-                    response.Message,
-                    response.Data.UserId,
-                    response.Data.UserName,
-                    response.Data.Is2FAEnabled
-                });
+                    Success = true,
+                    Message = "Two-factor authentication required.",
+                    Data = new LoginResponse
+                    {
+                        UserId = response.Data.UserId,
+                        UserName = response.Data.UserName,
+                        Is2FAEnabled = response.Data.Is2FAEnabled
+                    }
+                };
             }
 
-            return Ok(new
+            return new ResponseData<LoginResponse>
             {
-                response.Message,
-                Token = response.Data.Token,
-                response.Data.UserId,
-                response.Data.UserName
-            });
+                Success = response.Success,
+                Message = response.Message,
+                Data = new LoginResponse
+                {
+                    UserId = response.Data.UserId,
+                    UserName = response.Data.UserName,
+                    Token = response.Data.Token,
+                    Is2FAEnabled = response.Data.Is2FAEnabled
+                }
+            };
         }
     }
 }
