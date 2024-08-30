@@ -12,7 +12,7 @@
       <div class="modal-body p-5 pt-0">
         <form [formGroup]="verifyForm" (ngSubmit)="onVerify()">
           <div class="form-floating mb-3">
-            <input type="number" class="form-control rounded-3" id="code" placeholder="Enter OTP" formControlName="token">
+            <input type="text" class="form-control rounded-3" id="code" placeholder="Enter OTP" formControlName="token">
             <label for="code">Enter OTP</label>
           </div>
           <button class="w-100 mb-2 btn btn-lg rounded-3 btn-primary" type="submit">Verify</button>

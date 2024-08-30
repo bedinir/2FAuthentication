@@ -8,7 +8,6 @@ import {
   Validators,
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { error } from 'console';
 
 @Component({
   selector: 'app-verify2fa',
@@ -41,7 +40,7 @@ export class Verify2faComponent {
         next: (response) => {
           if (response.success) {
             localStorage.setItem('authToken', response.token); // Store the token
-            this.router.navigate(['/home']); // Navigate to the home page
+            this.router.navigate(['']); // Navigate to the home page
           } else {
             console.error('Verification failed: ', response.message);
           }

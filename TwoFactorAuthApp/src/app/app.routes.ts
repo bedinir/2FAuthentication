@@ -24,8 +24,12 @@ export const routes: Routes = [
     pathMatch: 'full' 
   },
   {
-    path: 'home',
-    component:HomeComponent,
-    canActivate:[authGuard]
+    path:'home',
+    component: HomeComponent
   }
+  // {
+  //   path: 'home',
+  //   component:HomeComponent,
+  //   canActivate:[authGuard]
+  // }
 ];

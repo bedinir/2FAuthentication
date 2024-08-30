@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { RegisterData } from '../shared/models/register-data';
@@ -9,24 +9,25 @@ import { LoginData } from '../shared/models/login-data';
   providedIn: 'root',
 })
 export class AuthService {
-  private baseUrl = 'https://localhost:7124/api/Auth/';
+  private baseUrl = 'https://localhost:7124/api';
 
   constructor(private http: HttpClient) {}
 
   register(data: RegisterData): Observable<ResponseData> {
-    return this.http.post<ResponseData>(`${this.baseUrl}/register`, data);
+    return this.http.post<ResponseData>(`${this.baseUrl}/Auth/register`, data);
   }
 
   login(data: LoginData): Observable<ResponseData> {
-    return this.http.post<ResponseData>(`${this.baseUrl}/login`, data);
+    return this.http.post<ResponseData>(`${this.baseUrl}/Auth/login`, data);
   }
 
-  verify2FA(token: string): Observable<any> {
-    return this.http.post(`${this.baseUrl}/verify-2fa`, token);
-  }
+  verify2FA(code: string): Observable<any> {
+    return this.http.post(`${this.baseUrl}/_2FA/verify-2fa`, { Code: code });
+  }  
 
   isAuthenticated(): boolean {
     const token = localStorage.getItem('authToken');
+    console.log(token)
     if (!token) {
       return false;
     }
@@ -55,5 +56,22 @@ export class AuthService {
     } catch (e) {
       return null; 
     }
+  }
+
+  private getToken(): string | null {
+    return localStorage.getItem('authToken');
+  }
+  
+  private saveToken(token: string): void {
+    localStorage.setItem('authToken', token);
+  }
+
+  private getAuthHeaders(): { headers: HttpHeaders } {
+    const token = this.getToken();
+    return {
+      headers: new HttpHeaders({
+        'Authorization': `Bearer ${token}`,
+      }),
+    };
   }
 }
