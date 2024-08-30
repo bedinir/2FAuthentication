@@ -4,11 +4,12 @@ import { NavBarComponent } from "./core/nav-bar/nav-bar.component";
 import { LoginComponent } from "./auth/login/login.component";
 import { RegisterComponent } from "./auth/register/register.component";
 import { Verify2faComponent } from "./auth/verify2fa/verify2fa.component";
+import { HomeComponent } from "./home/home.component";
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, NavBarComponent, LoginComponent, RegisterComponent, Verify2faComponent],
+  imports: [RouterOutlet, NavBarComponent, LoginComponent, RegisterComponent, Verify2faComponent, HomeComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })

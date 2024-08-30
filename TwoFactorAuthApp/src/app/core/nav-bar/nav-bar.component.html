@@ -7,21 +7,26 @@
         </a>
       </div>
   
-      <ul class="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0">
-        <li><a href="#" class="nav-link px-2 link-secondary" [routerLink]="['home']">Home</a></li>
-        <li><a href="#" class="nav-link px-2">Features</a></li>
-        <li><a href="#" class="nav-link px-2">Pricing</a></li>
-        <li><a href="#" class="nav-link px-2">FAQs</a></li>
-        <li><a href="#" class="nav-link px-2">About</a></li>
-      </ul>
-  
       <div class="col-md-3 text-end">
-        <button type="button" class="btn btn-outline-primary me-2" [routerLink]="['/login']">
-          Login
-        </button>
-        <button type="button" class="btn btn-primary" [routerLink]="['/register']">
-          Sign-up
-        </button>
+        @if (authService.isAuthenticated()) {
+          <div class="row d-flex justify-content-between align-items-center">
+            <div class="col">
+              HI THERE
+            </div>
+            <div class="col-lg">
+              <button type="button" class="btn btn-outline-primary me-2" (click)="logout()">
+                Logout <small><i class="bi bi-box-arrow-right"></i></small>
+              </button>
+            </div>
+          </div>
+        } @else {
+          <button type="button" class="btn btn-outline-primary me-2" [routerLink]="['/login']">
+            Login
+          </button>
+          <button type="button" class="btn btn-primary" [routerLink]="['/register']">
+            Sign-up
+          </button>
+        }
       </div>
       
     </header>
