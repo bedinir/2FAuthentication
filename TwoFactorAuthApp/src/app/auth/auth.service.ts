@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { RegisterData } from '../shared/models/register-data';
 import { ResponseData } from '../shared/models/response-data';
 import { LoginData } from '../shared/models/login-data';
+import { jwtDecode } from 'jwt-decode';
 
 @Injectable({
   providedIn: 'root',
@@ -42,22 +43,11 @@ export class AuthService {
   }
 
   private isTokenExpired(token: string): boolean {
-    const payload = this.decodeToken(token);
-    if (!payload || !payload.exp) {
-      return true;
-    }
-
-    const expiryTimeInMilliseconds = payload.exp * 1000;
-    return Date.now() > expiryTimeInMilliseconds;
-  }
-
-  private decodeToken(token: string): any {
-    try {
-      const payloadBase64 = token.split('.')[1];
-      return JSON.parse(atob(payloadBase64));
-    } catch (e) {
-      return null; 
-    }
+    if (!token) return true;
+    const decoded = jwtDecode(token);
+    const isTokenExpired = Date.now() >= decoded['exp']! * 1000;
+    if (isTokenExpired) this.logout();
+    return isTokenExpired;
   }
 
   private getToken(): string | null {
