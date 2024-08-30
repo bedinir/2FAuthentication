@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNet.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using TwoStepAuthentication.Models;
 using TwoStepAuthentication.Services;
@@ -11,12 +11,14 @@ namespace TwoStepAuthentication.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
-        private readonly I2FactorAuthentication _auth;
+        private readonly I2FactorAuthentication _2fauth;
+        private readonly UserManager<AppUser> _userManager;
 
-        public AuthController(IAuthService authService, I2FactorAuthentication auth)
+        public AuthController(IAuthService authService, I2FactorAuthentication auth, UserManager<AppUser> userManager)
         {
             _authService = authService;
-            _auth = auth;
+            _2fauth = auth;
+            _userManager = userManager;
         }
 
         [HttpPost("login")]
@@ -68,6 +70,45 @@ namespace TwoStepAuthentication.Controllers
                     Is2FAEnabled = response.Data.Is2FAEnabled
                 }
             };
+        }
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            var result = await _authService.LogoutAsync();
+            if (result)
+            {
+                return Ok("Logout successful.");
+            }
+            return BadRequest("Logout failed.");
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+        {
+            var result = await _authService.ResetPasswordAsync(request.Email, request.Token, request.NewPassword);
+            if (result)
+            {
+                return Ok("Password reset successful.");
+            }
+            return BadRequest("Error resetting password.");
+        }
+
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return BadRequest("User not found.");
+            }
+
+            var result = await _authService.ChangePasswordAsync(request.CurrentPassword, request.NewPassword, user);
+            if (result)
+            {
+                return Ok("Password change successful.");
+            }
+            return BadRequest("Error changing password.");
         }
     }
 }

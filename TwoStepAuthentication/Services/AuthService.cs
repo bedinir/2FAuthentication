@@ -66,5 +66,38 @@ namespace TwoStepAuthentication.Services
                 }
             };
         }
+
+        public async Task<bool> LogoutAsync()
+        {
+            await _signInManager.SignOutAsync();
+            return true;
+        }
+
+        public async Task<bool> RequestPasswordResetAsync(string email)
+        {
+            //var user = await _userManager.FindByEmailAsync(email);
+            //if(user == null)
+            //{
+            //    return false;
+            //}
+            return true;
+        }
+
+        public async Task<bool> ResetPasswordAsync(string email, string token, string newPassword)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if(user == null)
+            {
+                return false;
+            }
+            var result = await _userManager.ResetPasswordAsync(user, token, newPassword);
+            return result.Succeeded;
+        }
+
+        public async Task<bool> ChangePasswordAsync(string currentPassword, string newPassword, AppUser user)
+        {
+            var result = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+            return result.Succeeded;
+        }
     }
 }
