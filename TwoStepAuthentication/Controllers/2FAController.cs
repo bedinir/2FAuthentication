@@ -44,7 +44,7 @@ namespace TwoStepAuthentication.Controllers
         [HttpPost("verify-2fa")]
         public async Task<IActionResult> VerifyTwoFactorCode([FromBody] Verify2FARequest request)
         {
-            var user = await _userManager.GetUserAsync(User);
+            var user = await _userManager.FindByNameAsync(request.Username);
             if(user == null)
             {
                 return BadRequest("User not found.");

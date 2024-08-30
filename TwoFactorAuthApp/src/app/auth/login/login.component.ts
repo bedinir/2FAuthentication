@@ -9,6 +9,7 @@ import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../auth.service';
 import { LoginData } from '../../shared/models/login-data';
 import { CommonModule } from '@angular/common';
+import { state } from '@angular/animations';
 
 @Component({
   selector: 'app-login',
@@ -40,8 +41,8 @@ export class LoginComponent {
         next: (res) => {
           if (res.data.is2FAEnabled) {
             console.log('Navigating to verify-2fa');
-            this.router.navigate(['verify-2fa'], { state: { Username: user.Username } }).then(success => {
-              console.log('Navigation to verify-2fa successful:', success);
+            this.router.navigate(['verify-2fa'], { queryParams: { username: user.Username } }).then(success => {
+              console.log('Navigation to verify-2fa successful:', success, user.Username);
             }).catch(error => {
               console.error('Navigation error to verify-2fa:', error);
             });

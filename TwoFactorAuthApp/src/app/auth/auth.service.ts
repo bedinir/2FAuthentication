@@ -21,9 +21,11 @@ export class AuthService {
     return this.http.post<ResponseData>(`${this.baseUrl}/Auth/login`, data);
   }
 
-  verify2FA(code: string): Observable<any> {
-    return this.http.post(`${this.baseUrl}/_2FA/verify-2fa`, { Code: code });
-  }  
+  verify2FA(code: string, username: string): Observable<any> {
+    const body = { code, username }; // Create the body object
+    return this.http.post(`${this.baseUrl}/_2FA/verify-2fa`, body);
+  }
+  
 
   isAuthenticated(): boolean {
     const token = localStorage.getItem('authToken');
