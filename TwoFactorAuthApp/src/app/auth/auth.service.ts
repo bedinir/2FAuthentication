@@ -1,10 +1,11 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { Observable } from 'rxjs';
 import { RegisterData } from '../shared/models/register-data';
 import { ResponseData } from '../shared/models/response-data';
 import { LoginData } from '../shared/models/login-data';
 import { jwtDecode } from 'jwt-decode';
+import { isPlatformBrowser } from '@angular/common';
 
 @Injectable({
   providedIn: 'root',
@@ -12,7 +13,10 @@ import { jwtDecode } from 'jwt-decode';
 export class AuthService {
   private baseUrl = 'https://localhost:7124/api';
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {}
 
   register(data: RegisterData): Observable<ResponseData> {
     return this.http.post<ResponseData>(`${this.baseUrl}/Auth/register`, data);
@@ -26,11 +30,13 @@ export class AuthService {
     const body = { code, username }; // Create the body object
     return this.http.post(`${this.baseUrl}/_2FA/verify-2fa`, body);
   }
-  
 
   isAuthenticated(): boolean {
+    if (!isPlatformBrowser(this.platformId)) {
+      // If not running in the browser, return false or handle accordingly
+      return false;
+    }
     const token = localStorage.getItem('authToken');
-    console.log(token)
     if (!token) {
       return false;
     }
@@ -53,7 +59,7 @@ export class AuthService {
   private getToken(): string | null {
     return localStorage.getItem('authToken');
   }
-  
+
   private saveToken(token: string): void {
     localStorage.setItem('authToken', token);
   }
@@ -62,7 +68,7 @@ export class AuthService {
     const token = this.getToken();
     return {
       headers: new HttpHeaders({
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       }),
     };
   }
