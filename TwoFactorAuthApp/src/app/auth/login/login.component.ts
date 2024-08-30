@@ -20,7 +20,8 @@ import { state } from '@angular/animations';
 })
 export class LoginComponent {
   loginForm: FormGroup;
-
+  passwordVisible: boolean = false;
+  
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,

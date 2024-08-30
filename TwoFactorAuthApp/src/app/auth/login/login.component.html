@@ -14,13 +14,29 @@
               Email is required and must be a valid email address.
             </div>
           </div>
-          <div class="form-floating mb-3">
-            <input type="password" class="form-control rounded-3" id="floatingPassword" placeholder="Password" formControlName="Password">
+          <div class="form-floating mb-3 position-relative">
+            <input 
+              [type]="passwordVisible ? 'text' : 'password'" 
+              class="form-control rounded-3" 
+              id="floatingPassword" 
+              placeholder="Password" 
+              formControlName="Password">
             <label for="floatingPassword">Password</label>
+          
+            <!-- Toggle Visibility Button -->
+            <button 
+              type="button" 
+              class="btn btn-outline-secondary position-absolute top-50 end-0 translate-middle-y me-2" 
+              (click)="passwordVisible = !passwordVisible">
+              <i class="bi" [ngClass]="passwordVisible ? 'bi-eye-slash' : 'bi-eye'"></i>
+            </button>
+          
+            <!-- Error Message -->
             <div *ngIf="loginForm.get('Password')?.invalid && loginForm.get('Password')?.touched" class="text-danger">
               Password is required.
             </div>
           </div>
+          
           <div class="form-check text-start my-3">
               <input class="form-check-input" type="checkbox" value="remember-me" id="flexCheckDefault" formControlName="rememberMe">
               <label class="form-check-label" for="flexCheckDefault">
