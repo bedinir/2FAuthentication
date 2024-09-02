@@ -1,0 +1,5 @@
+.nav-link.active {
+    background-color: #fff !important; /* White background for active link */
+    color: var(--bs-primary) !important; /* Primary color for text */
+  }
+  

@@ -1,1 +1,74 @@
-<p>user-details works!</p>
+<div class="container mt-5">
+    <div class="row">
+      <!-- Account Info -->
+      <div class="col-md-6 mb-4">
+        <div class="card rounded-4 shadow">
+          <div class="card-header p-4 border-bottom-0">
+            <h2 class="h4 fw-bold">Account Info</h2>
+          </div>
+          <div class="card-body p-4">
+            <form id="account-info-form" >
+              <div class="form-floating mb-3">
+                <input type="text" class="form-control rounded-3" id="Name-5" placeholder="Name" formControlName="Name" required>
+                <label for="Name-5">Name</label>
+              </div>
+              <div class="form-floating mb-3">
+                <input type="text" class="form-control rounded-3" id="Name-6" placeholder="Last Name" formControlName="LastName" required>
+                <label for="Name-6">Last Name</label>
+              </div>
+              <div class="form-floating mb-3">
+                <input type="text" class="form-control rounded-3" id="Username-2" placeholder="Display Name" formControlName="DisplayName" required>
+                <label for="Username-2">Display Name</label>
+                <small class="form-text text-muted">Only letters and numbers with no spaces.</small>
+              </div>
+              <div class="form-floating mb-3">
+                <input type="email" class="form-control rounded-3" id="Email-2" placeholder="Email" formControlName="Email" required>
+                <label for="Email-2">Email</label>
+              </div>
+              <button type="submit" class="w-100 btn btn-lg rounded-3 btn-primary">Save changes</button>
+            </form>
+          </div>
+        </div>
+      </div>
+  
+      <!-- Profile Details -->
+      <div class="col-md-6 mb-4">
+        <div class="card rounded-4 shadow">
+          <div class="card-header p-4 border-bottom-0">
+            <h2 class="h4 fw-bold">Profile Details</h2>
+          </div>
+          <div class="card-body p-4">
+            <form id="profile-details-form" >
+              <div class="form-floating mb-3">
+                <input type="text" class="form-control rounded-3" id="Country" placeholder="Country" formControlName="Country">
+                <label for="Country">Country</label>
+              </div>
+              <div class="form-floating mb-3">
+                <input type="text" class="form-control rounded-3" id="City" placeholder="City" formControlName="City">
+                <label for="City">City</label>
+              </div>
+              <div class="form-floating mb-3">
+                <input type="text" class="form-control rounded-3" id="Title" placeholder="Title" formControlName="Title">
+                <label for="Title">Title</label>
+              </div>
+              <div class="form-floating mb-3">
+                <input type="text" class="form-control rounded-3" id="Website" placeholder="Website" formControlName="Website">
+                <label for="Website">Website</label>
+              </div>
+              <div class="form-floating mb-3">
+                <textarea class="form-control rounded-3" id="Bio" placeholder="Bio" maxlength="5000" formControlName="Bio"></textarea>
+                <label for="Bio">Bio</label>
+                <small class="form-text text-muted">Max 140 characters.</small>
+              </div>
+              <div class="form-floating mb-3">
+                <input type="text" class="form-control rounded-3" id="Interests" placeholder="Interests" formControlName="Interests">
+                <label for="Interests">Interests</label>
+                <small class="form-text text-muted">Fields you're passionate about or would like to explore.</small>
+              </div>
+              <button type="submit" class="w-100 btn btn-lg rounded-3 btn-primary">Save changes</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>

@@ -1,1 +1,150 @@
-<p>profile works!</p>
+<div class="container mt-5">
+  <div class="row">
+    <!-- Change Password -->
+    <div class="col-md-6 mb-4">
+      <div class="card rounded-4 shadow">
+        <div class="card-header p-4 border-bottom-0">
+          <h2 class="h4 fw-bold">Change Password</h2>
+        </div>
+        <div class="card-body p-4">
+          <form
+            id="change-password-form"
+            [formGroup]="changePasswordForm"
+            (ngSubmit)="onChangePassword()"
+          >
+            <div class="form-floating mb-3">
+              <input
+                type="password"
+                class="form-control rounded-3"
+                id="OldPassword"
+                placeholder="Old Password"
+                formControlName="OldPassword"
+                required
+              />
+              <label for="OldPassword">Old Password</label>
+            </div>
+            <div class="form-floating mb-3">
+              <input
+                type="password"
+                class="form-control rounded-3"
+                id="NewPassword"
+                placeholder="New Password"
+                formControlName="NewPassword"
+                required
+              />
+              <label for="NewPassword">New Password</label>
+            </div>
+            <div class="form-floating mb-3">
+              <input
+                type="password"
+                class="form-control rounded-3"
+                id="RepeatNewPassword"
+                placeholder="Repeat New Password"
+                formControlName="RepeatNewPassword"
+                required
+              />
+              <label for="RepeatNewPassword">Repeat New Password</label>
+            </div>
+            <button
+              type="submit"
+              class="w-100 btn btn-lg rounded-3 btn-primary"
+            >
+              Save changes
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Two-Factor Authentication -->
+    <div class="col-md-6 mb-4">
+      <div class="card rounded-4 shadow">
+        <div class="card-header p-4 border-bottom-0">
+          <h2 class="h4 fw-bold">Two-Factor Authentication</h2>
+        </div>
+        <div class="card-body p-4">
+          <form
+            id="two-factor-auth-form"
+            [formGroup]="twoFactorAuthForm"
+            (ngSubmit)="onToggle2FA()"
+          >
+            <div class="form-check mb-3">
+              <input
+                type="checkbox"
+                class="form-check-input"
+                id="enable2FA"
+                formControlName="enable2FA"
+                (change)="onCheckboxChange($event)"
+              />
+              <label class="form-check-label" for="enable2FA">
+                {{
+                  is2FAEnabled
+                    ? "Disable Two-Factor Authentication"
+                    : "Enable Two-Factor Authentication"
+                }}
+              </label>
+              <small class="form-text text-muted">
+                {{
+                  is2FAEnabled
+                    ? "Disable 2FA to simplify your login process."
+                    : "Add an extra layer of security to your account."
+                }}
+              </small>
+            </div>
+
+            <!-- Button visibility based on checkbox state -->
+            @if(is2FAEnabled || twoFactorAuthForm.get('enable2FA')?.value){
+            <button
+              type="submit"
+              class="w-100 btn btn-lg rounded-3 btn-primary"
+            >
+              {{ is2FAEnabled ? "Disable 2FA" : "Enable 2FA" }}
+            </button>
+            }
+          </form>
+
+          <!-- Display the Verify 2FA Component -->
+          @if(showVerifyComponent){
+          <app-verify2fa></app-verify2fa>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Enable 2FA Modal -->
+    @if(showEnableModal){
+    <div
+      class="modal modal-sheet position-static d-block p-6 py-md-5"
+      tabindex="-1"
+      role="dialog"
+      id="modalEnable2FA"
+    >
+      <div class="modal-dialog" role="document">
+        <div class="modal-content rounded-4 shadow">
+          <div class="modal-header p-5 pb-4 border-bottom-0">
+            <h1 class="fw-bold mb-0 fs-2">Enable Two-Factor Authentication</h1>
+          </div>
+          <div class="modal-body p-5 pt-0">
+            <p>
+              To enable two-factor authentication, you need to verify your
+              identity.
+            </p>
+            <button
+              class="w-100 mb-2 btn btn-lg rounded-3 btn-primary"
+              (click)="onToggle2FA()"
+            >
+              Enable 2FA
+            </button>
+            <button
+              class="w-100 mb-2 btn btn-lg rounded-3 btn-secondary"
+              (click)="closeModal()"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    }
+  </div>
+</div>
