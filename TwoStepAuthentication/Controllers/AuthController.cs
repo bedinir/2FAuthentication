@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using TwoStepAuthentication.Models;
 using TwoStepAuthentication.Services;
@@ -6,8 +7,8 @@ using TwoStepAuthentication.Services.Interfaces;
 
 namespace TwoStepAuthentication.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
@@ -95,6 +96,7 @@ namespace TwoStepAuthentication.Controllers
         }
 
         [HttpPost("change-password")]
+        [Authorize]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
         {
             var user = await _userManager.GetUserAsync(User);
