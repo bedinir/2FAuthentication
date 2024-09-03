@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Verify2faComponent } from "../../auth/verify2fa/verify2fa.component";
 import { AuthService } from '../../auth/auth.service';
+import { ChangePasswordData } from '../../shared/models/change-password-data';
 
 @Component({
   selector: 'app-profile',
@@ -24,7 +25,7 @@ export class ProfileComponent implements OnInit {
     private authService: AuthService
   ) { 
     this.changePasswordForm = this.fb.group({
-      OldPassword: [''],
+      CurrentPassword : [''],
       NewPassword: [''],
       RepeatNewPassword: ['']
     });
@@ -40,7 +41,19 @@ export class ProfileComponent implements OnInit {
     this.get2FAStatus();
   }
 
-  onChangePassword(){}
+  onChangePassword(){
+    if(this.changePasswordForm.valid){
+      const data: ChangePasswordData = this.changePasswordForm.value;
+      this.authService.changePassword(data).subscribe({
+        next: (res) => {
+          console.log(res)
+        },
+        error: (error)=>{
+          console.log('Error', error);
+        }
+      });
+    }
+  }
 
   get2FAStatus() {
     // Fetch the 2FA status from the backend

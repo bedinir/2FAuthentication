@@ -1,11 +1,12 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
-import { Observable } from 'rxjs';
+import { catchError, Observable, throwError } from 'rxjs';
 import { RegisterData } from '../shared/models/register-data';
 import { ResponseData } from '../shared/models/response-data';
 import { LoginData } from '../shared/models/login-data';
 import { jwtDecode } from 'jwt-decode';
 import { isPlatformBrowser } from '@angular/common';
+import { ChangePasswordData } from '../shared/models/change-password-data';
 
 @Injectable({
   providedIn: 'root',
@@ -48,6 +49,17 @@ export class AuthService {
     localStorage.removeItem('authToken');
   }
 
+  changePassword(data: ChangePasswordData) {
+    const token = localStorage.getItem('authToken') || '';
+    let headersToSend = new HttpHeaders();
+    headersToSend = headersToSend
+      // .set('Bearer', token)
+      .set('Accept', 'application/json');
+    return this.http.post(`${this.baseUrl}/Auth/change-password`, data, {
+      headers: headersToSend,
+    });
+  }
+
   private isTokenExpired(token: string): boolean {
     if (!token) return true;
     const decoded = jwtDecode(token);
@@ -56,7 +68,7 @@ export class AuthService {
     return isTokenExpired;
   }
 
-  private getToken(): string | null {
+  getToken() {
     return localStorage.getItem('authToken');
   }
 
@@ -64,12 +76,18 @@ export class AuthService {
     localStorage.setItem('authToken', token);
   }
 
-  private getAuthHeaders(): { headers: HttpHeaders } {
-    const token = this.getToken();
-    return {
-      headers: new HttpHeaders({
-        Authorization: `Bearer ${token}`,
-      }),
-    };
+  getAuthHeaders() {
+    const token = localStorage.getItem('authToken'); // or wherever you store your token
+    console.log(token);
+
+    if (!token) {
+      console.error('Token not found, redirecting to login.');
+      // Redirect to login page or handle unauthorized access
+    }
+
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+    });
+    return { headers: headers };
   }
 }
