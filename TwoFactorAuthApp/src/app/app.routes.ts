@@ -20,11 +20,11 @@ export const routes: Routes = [
     path: 'verify-2fa',
     component: Verify2faComponent,
   },
-  // {
-  //   path: '',
-  //   redirectTo: '/login',
-  //   pathMatch: 'full',
-  // },
+  {
+    path: '',
+    redirectTo: '/home',
+    pathMatch: 'full',
+  },
   {
     path: 'home',
     component: HomeComponent,
@@ -40,9 +40,5 @@ export const routes: Routes = [
     component: UserDetailsComponent,
     canActivate: [authGuard],
   },
-  // {
-  //   path: 'home',
-  //   component:HomeComponent,
-  //   canActivate:[authGuard]
-  // }
+
 ];
