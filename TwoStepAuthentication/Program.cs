@@ -27,12 +27,13 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddAuthentication()
-                .AddBearerToken(IdentityConstants.BearerScheme);
+builder.Services.AddAuthentication(IdentityConstants.ApplicationScheme)
+                .AddBearerToken(IdentityConstants.BearerScheme)
+                .AddIdentityCookies();
 
-builder.Services
-    .AddAuthentication(IdentityConstants.ApplicationScheme)
-    .AddIdentityCookies();
+//builder.Services
+//    .AddAuthentication(IdentityConstants.ApplicationScheme)
+//    .AddIdentityCookies();
 
 builder.Services.AddSendGrid(options =>
     options.ApiKey = builder.Configuration.GetSection("SendGridKey:SendGridKey").Value
@@ -94,6 +95,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseCors();
+
+app.UseRouting();
 
 app.UseAuthentication();
 
