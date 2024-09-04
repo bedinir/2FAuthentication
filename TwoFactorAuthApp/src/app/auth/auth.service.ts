@@ -12,7 +12,7 @@ import { ChangePasswordData } from '../shared/models/change-password-data';
   providedIn: 'root',
 })
 export class AuthService {
-  private baseUrl = 'https://localhost:7124/api';
+  private baseUrl = 'https://localhost:7124/api/';
 
   constructor(
     private http: HttpClient,
@@ -20,16 +20,16 @@ export class AuthService {
   ) {}
 
   register(data: RegisterData): Observable<ResponseData> {
-    return this.http.post<ResponseData>(`${this.baseUrl}/Auth/register`, data);
+    return this.http.post<ResponseData>(`${this.baseUrl}Auth/register`, data);
   }
 
   login(data: LoginData): Observable<ResponseData> {
-    return this.http.post<ResponseData>(`${this.baseUrl}/Auth/login`, data);
+    return this.http.post<ResponseData>(`${this.baseUrl}Auth/login`, data);
   }
 
   verify2FA(code: string, username: string): Observable<any> {
     const body = { code, username }; // Create the body object
-    return this.http.post(`${this.baseUrl}/_2FA/verify-2fa`, body);
+    return this.http.post(`${this.baseUrl}_2FA/verify-2fa`, body);
   }
 
   isAuthenticated(): boolean {
@@ -50,15 +50,9 @@ export class AuthService {
   }
 
   changePassword(data: ChangePasswordData) {
-    const token = localStorage.getItem('authToken') || '';
-    let headersToSend = new HttpHeaders();
-    headersToSend = headersToSend
-      // .set('Bearer', token)
-      .set('Accept', 'application/json');
-    return this.http.post(`${this.baseUrl}/Auth/change-password`, data, {
-      headers: headersToSend,
-    });
+    return this.http.post(`${this.baseUrl}Auth/change-password`, data);
   }
+  
 
   private isTokenExpired(token: string): boolean {
     if (!token) return true;
@@ -76,18 +70,4 @@ export class AuthService {
     localStorage.setItem('authToken', token);
   }
 
-  getAuthHeaders() {
-    const token = localStorage.getItem('authToken'); // or wherever you store your token
-    console.log(token);
-
-    if (!token) {
-      console.error('Token not found, redirecting to login.');
-      // Redirect to login page or handle unauthorized access
-    }
-
-    const headers = new HttpHeaders({
-      Authorization: `Bearer ${token}`,
-    });
-    return { headers: headers };
-  }
 }

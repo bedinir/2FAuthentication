@@ -5,11 +5,12 @@ import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Verify2faComponent } from "../../auth/verify2fa/verify2fa.component";
 import { AuthService } from '../../auth/auth.service';
 import { ChangePasswordData } from '../../shared/models/change-password-data';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [HomeComponent, RouterModule, ReactiveFormsModule, Verify2faComponent],
+  imports: [HomeComponent, RouterModule, ReactiveFormsModule, Verify2faComponent,CommonModule],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.css'
 })
@@ -41,19 +42,32 @@ export class ProfileComponent implements OnInit {
     this.get2FAStatus();
   }
 
-  onChangePassword(){
-    if(this.changePasswordForm.valid){
-      const data: ChangePasswordData = this.changePasswordForm.value;
-      this.authService.changePassword(data).subscribe({
-        next: (res) => {
-          console.log(res)
-        },
-        error: (error)=>{
-          console.log('Error', error);
-        }
-      });
+  onChangePassword() {
+    console.log('onChangePassword called');
+    if (this.changePasswordForm.valid) {
+        const data: ChangePasswordData = this.changePasswordForm.value;
+        this.authService.changePassword(data).subscribe({
+            next: (res) => {
+                console.log('Password changed successfully', res);
+                // Maybe show a success message to the user here
+            },
+            error: (error) => {
+                console.error('Error changing password', error);
+                if (error.status === 401) {
+                    // Handle unauthorized (maybe redirect to login)
+                    console.log('Unauthorized - Please log in again.');
+                } else if (error.status === 403) {
+                    // Handle forbidden (access denied)
+                    console.log('Access Denied');
+                } else {
+                    // Handle other errors
+                    console.log('An error occurred', error.message);
+                }
+            }
+        });
     }
-  }
+}
+
 
   get2FAStatus() {
     // Fetch the 2FA status from the backend

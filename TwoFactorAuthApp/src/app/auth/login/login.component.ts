@@ -9,8 +9,6 @@ import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../auth.service';
 import { LoginData } from '../../shared/models/login-data';
 import { CommonModule } from '@angular/common';
-import { state } from '@angular/animations';
-
 @Component({
   selector: 'app-login',
   standalone: true,
