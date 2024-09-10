@@ -24,7 +24,7 @@ namespace TwoStepAuthentication.Services
             _emailSender = emailSender;
             _userManager = userManager;
             _config = config;
-            _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JWT:Secret"].ToCharArray()));
+            _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"].ToCharArray()));
         }
 
         public async Task<string> CreateToken(AppUser user)

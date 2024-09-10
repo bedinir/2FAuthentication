@@ -1,10 +1,13 @@
 using Identity;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using SendGrid.Extensions.DependencyInjection;
 using System;
 using System.Security.Claims;
+using System.Text;
 using TwoStepAuthentication;
 using TwoStepAuthentication.Models;
 using TwoStepAuthentication.Services;
@@ -22,18 +25,41 @@ builder.Services.AddCors(option =>
     });
 });
 
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    options.UseSqlite("DataSource=app.db");
+});
+
+builder.Services.AddIdentity<AppUser, IdentityRole>()
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders();
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+    };
+});
+
+builder.Services.AddAuthorization();
+
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddAuthentication(IdentityConstants.ApplicationScheme)
-                .AddBearerToken(IdentityConstants.BearerScheme)
-                .AddIdentityCookies();
-
-//builder.Services
-//    .AddAuthentication(IdentityConstants.ApplicationScheme)
-//    .AddIdentityCookies();
 
 builder.Services.AddSendGrid(options =>
     options.ApiKey = builder.Configuration.GetSection("SendGridKey:SendGridKey").Value
@@ -44,15 +70,6 @@ builder.Services.AddScoped<I2FactorAuthentication, _2FactorAuthentication>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddAuthorizationBuilder();
-
-builder.Services.AddDbContext<AppDbContext>(options =>
-{
-    options.UseSqlite("DataSource=app.db");
-});
-
-builder.Services.AddIdentityCore<AppUser>()
-    .AddEntityFrameworkStores<AppDbContext>()
-    .AddApiEndpoints();
 
 builder.Services.Configure<IdentityOptions>(opt =>
 {
@@ -80,11 +97,6 @@ builder.Services.Configure<IdentityOptions>(opt =>
 
 var app = builder.Build();
 
-//app.MapIdentityApi<AppUser>();
-
-app.Map("/", (ClaimsPrincipal user) => $"Hello {user.Identity!.Name} ")
-    .RequireAuthorization();
-
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -95,8 +107,6 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseCors();
-
-app.UseRouting();
 
 app.UseAuthentication();
 
