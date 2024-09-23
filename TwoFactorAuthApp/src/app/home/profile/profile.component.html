@@ -7,20 +7,19 @@
           <h2 class="h4 fw-bold">Change Password</h2>
         </div>
         <div class="card-body p-4">
-
-          <form id="change-password-form" [formGroup]="changePasswordForm">
+          <form id="change-password-form" [formGroup]="changePasswordForm" (ngSubmit)="onChangePassword()">
             <div class="form-floating mb-3">
               <input
                 type="password"
                 class="form-control rounded-3"
                 id="CurrentPassword"
-                placeholder="CurrentPassword"
+                placeholder="Current Password"
                 formControlName="CurrentPassword"
                 required
               />
-              <label for="CurrentPassword">CurrentPassword </label>
+              <label for="CurrentPassword">Current Password</label>
             </div>
-            <div class="form-floating mb-3">
+            <div class="form-floating mb-3 position-relative">
               <input
                 [type]="newPasswordVisible ? 'text' : 'password'"
                 class="form-control rounded-3"
@@ -29,20 +28,17 @@
                 formControlName="NewPassword"
                 required
               />
+              <label for="NewPassword">New Password</label>
               <!-- Toggle Visibility Button -->
               <button
                 type="button"
                 class="btn btn-outline-secondary position-absolute top-50 end-0 translate-middle-y me-2"
                 (click)="newPasswordVisible = !newPasswordVisible"
               >
-                <i
-                  class="bi"
-                  [ngClass]="newPasswordVisible ? 'bi-eye-slash' : 'bi-eye'"
-                ></i>
+                <i class="bi" [ngClass]="newPasswordVisible ? 'bi-eye-slash' : 'bi-eye'"></i>
               </button>
-              <label for="NewPassword">New Password</label>
             </div>
-            <div class="form-floating mb-3">
+            <div class="form-floating mb-3 position-relative">
               <input
                 [type]="repeatPasswordVisible ? 'text' : 'password'"
                 class="form-control rounded-3"
@@ -51,24 +47,17 @@
                 formControlName="RepeatNewPassword"
                 required
               />
-
+              <label for="RepeatNewPassword">Repeat New Password</label>
               <!-- Toggle Visibility Button -->
               <button
                 type="button"
                 class="btn btn-outline-secondary position-absolute top-50 end-0 translate-middle-y me-2"
                 (click)="repeatPasswordVisible = !repeatPasswordVisible"
               >
-                <i
-                  class="bi"
-                  [ngClass]="repeatPasswordVisible ? 'bi-eye-slash' : 'bi-eye'"
-                ></i>
+                <i class="bi" [ngClass]="repeatPasswordVisible ? 'bi-eye-slash' : 'bi-eye'"></i>
               </button>
-              <label for="RepeatNewPassword">Repeat New Password</label>
             </div>
-            <button
-              type="submit"
-              class="w-100 btn btn-lg rounded-3 btn-primary"
-            >
+            <button type="submit" class="w-100 btn btn-lg rounded-3 btn-primary">
               Save changes
             </button>
           </form>
@@ -83,11 +72,7 @@
           <h2 class="h4 fw-bold">Two-Factor Authentication</h2>
         </div>
         <div class="card-body p-4">
-          <form
-            id="two-factor-auth-form"
-            [formGroup]="twoFactorAuthForm"
-            (ngSubmit)="onToggle2FA()"
-          >
+          <form id="two-factor-auth-form" [formGroup]="twoFactorAuthForm" (ngSubmit)="onToggle2FA()">
             <div class="form-check mb-3">
               <input
                 type="checkbox"
@@ -97,74 +82,43 @@
                 (change)="onCheckboxChange($event)"
               />
               <label class="form-check-label" for="enable2FA">
-                {{
-                  is2FAEnabled
-                    ? "Disable Two-Factor Authentication"
-                    : "Enable Two-Factor Authentication"
-                }}
+                {{ is2FAEnabled ? "Disable Two-Factor Authentication" : "Enable Two-Factor Authentication" }}
               </label>
               <small class="form-text text-muted">
-                {{
-                  is2FAEnabled
-                    ? "Disable 2FA to simplify your login process."
-                    : "Add an extra layer of security to your account."
-                }}
+                {{ is2FAEnabled ? "Disable 2FA to simplify your login process." : "Add an extra layer of security to your account." }}
               </small>
             </div>
 
             <!-- Button visibility based on checkbox state -->
-            @if(is2FAEnabled || twoFactorAuthForm.get('enable2FA')?.value){
-            <button
-              type="submit"
-              class="w-100 btn btn-lg rounded-3 btn-primary"
-            >
+            <button *ngIf="is2FAEnabled || twoFactorAuthForm.get('enable2FA')?.value" type="submit" class="w-100 btn btn-lg rounded-3 btn-primary">
               {{ is2FAEnabled ? "Disable 2FA" : "Enable 2FA" }}
             </button>
-            }
           </form>
 
           <!-- Display the Verify 2FA Component -->
-          @if(showVerifyComponent){
-          <app-verify2fa></app-verify2fa>
-          }
+          <app-verify2fa *ngIf="showVerifyComponent"></app-verify2fa>
         </div>
       </div>
     </div>
 
     <!-- Enable 2FA Modal -->
-    @if(showEnableModal){
-    <div
-      class="modal modal-sheet position-static d-block p-6 py-md-5"
-      tabindex="-1"
-      role="dialog"
-      id="modalEnable2FA"
-    >
+    <div *ngIf="showEnableModal" class="modal modal-sheet position-static d-block p-6 py-md-5" tabindex="-1" role="dialog" id="modalEnable2FA">
       <div class="modal-dialog" role="document">
         <div class="modal-content rounded-4 shadow">
           <div class="modal-header p-5 pb-4 border-bottom-0">
             <h1 class="fw-bold mb-0 fs-2">Enable Two-Factor Authentication</h1>
           </div>
           <div class="modal-body p-5 pt-0">
-            <p>
-              To enable two-factor authentication, you need to verify your
-              identity.
-            </p>
-            <button
-              class="w-100 mb-2 btn btn-lg rounded-3 btn-primary"
-              (click)="onToggle2FA()"
-            >
+            <p>To enable two-factor authentication, you need to verify your identity.</p>
+            <button class="w-100 mb-2 btn btn-lg rounded-3 btn-primary" (click)="onToggle2FA()">
               Enable 2FA
             </button>
-            <button
-              class="w-100 mb-2 btn btn-lg rounded-3 btn-secondary"
-              (click)="closeModal()"
-            >
+            <button class="w-100 mb-2 btn btn-lg rounded-3 btn-secondary" (click)="closeModal()">
               Cancel
             </button>
           </div>
         </div>
       </div>
     </div>
-    }
   </div>
 </div>
