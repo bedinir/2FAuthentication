@@ -17,6 +17,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
+builder.Services.AddControllers();
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 builder.Services.AddCors(option =>
 {
     option.AddDefaultPolicy(policy =>
@@ -24,15 +29,6 @@ builder.Services.AddCors(option =>
         policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
     });
 });
-
-builder.Services.AddDbContext<AppDbContext>(options =>
-{
-    options.UseSqlite("DataSource=app.db");
-});
-
-builder.Services.AddIdentity<AppUser, IdentityRole>()
-    .AddEntityFrameworkStores<AppDbContext>()
-    .AddDefaultTokenProviders();
 
 builder.Services.AddAuthentication(options =>
 {
@@ -53,13 +49,17 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorizationBuilder();
 
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    options.UseSqlite("DataSource=app.db");
+});
+
+builder.Services.AddIdentity<AppUser, IdentityRole>()
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders();
 
 builder.Services.AddSendGrid(options =>
     options.ApiKey = builder.Configuration.GetSection("SendGridKey:SendGridKey").Value
@@ -68,8 +68,6 @@ builder.Services.AddSendGrid(options =>
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 builder.Services.AddScoped<I2FactorAuthentication, _2FactorAuthentication>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-
-builder.Services.AddAuthorizationBuilder();
 
 builder.Services.Configure<IdentityOptions>(opt =>
 {
