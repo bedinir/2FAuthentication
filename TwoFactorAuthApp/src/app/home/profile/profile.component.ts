@@ -20,6 +20,8 @@ export class ProfileComponent implements OnInit {
   is2FAEnabled: boolean = true;
   showVerifyComponent: boolean = false;
   showEnableModal: boolean = false;
+  newPasswordVisible: boolean = false;
+  repeatPasswordVisible: boolean = false;
 
 
   constructor(private fb: FormBuilder,
