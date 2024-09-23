@@ -7,11 +7,8 @@
           <h2 class="h4 fw-bold">Change Password</h2>
         </div>
         <div class="card-body p-4">
-          <form
-            id="change-password-form"
-            [formGroup]="changePasswordForm"
-            (ngSubmit)="onChangePassword()"
-          >
+
+          <form id="change-password-form" [formGroup]="changePasswordForm">
             <div class="form-floating mb-3">
               <input
                 type="password"
@@ -25,24 +22,47 @@
             </div>
             <div class="form-floating mb-3">
               <input
-                type="password"
+                [type]="newPasswordVisible ? 'text' : 'password'"
                 class="form-control rounded-3"
                 id="NewPassword"
                 placeholder="New Password"
                 formControlName="NewPassword"
                 required
               />
+              <!-- Toggle Visibility Button -->
+              <button
+                type="button"
+                class="btn btn-outline-secondary position-absolute top-50 end-0 translate-middle-y me-2"
+                (click)="newPasswordVisible = !newPasswordVisible"
+              >
+                <i
+                  class="bi"
+                  [ngClass]="newPasswordVisible ? 'bi-eye-slash' : 'bi-eye'"
+                ></i>
+              </button>
               <label for="NewPassword">New Password</label>
             </div>
             <div class="form-floating mb-3">
               <input
-                type="password"
+                [type]="repeatPasswordVisible ? 'text' : 'password'"
                 class="form-control rounded-3"
                 id="RepeatNewPassword"
                 placeholder="Repeat New Password"
                 formControlName="RepeatNewPassword"
                 required
               />
+
+              <!-- Toggle Visibility Button -->
+              <button
+                type="button"
+                class="btn btn-outline-secondary position-absolute top-50 end-0 translate-middle-y me-2"
+                (click)="repeatPasswordVisible = !repeatPasswordVisible"
+              >
+                <i
+                  class="bi"
+                  [ngClass]="repeatPasswordVisible ? 'bi-eye-slash' : 'bi-eye'"
+                ></i>
+              </button>
               <label for="RepeatNewPassword">Repeat New Password</label>
             </div>
             <button
