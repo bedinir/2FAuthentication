@@ -49,10 +49,10 @@ export class AuthService {
     localStorage.removeItem('authToken');
   }
 
-  changePassword(data: ChangePasswordData) {
-    return this.http.post(`${this.baseUrl}Auth/change-password`, data);
-  }
-  
+  changePassword(changePasswordDto: ChangePasswordData): Observable<any> {
+    return this.http.post(`${this.baseUrl}auth/change-password`, changePasswordDto);
+}
+
 
   private isTokenExpired(token: string): boolean {
     if (!token) return true;

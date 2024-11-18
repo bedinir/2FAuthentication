@@ -24,35 +24,57 @@ namespace TwoStepAuthentication.Services
                 return new ResponseData<LoginResponse>
                 {
                     Success = false,
-                    Message = "User not found"
+                    Message = "User not found."
                 };
             }
-            var result = await _signInManager.PasswordSignInAsync(user, loginRequest.Password,false, false);
+
+            var result = await _signInManager.PasswordSignInAsync(user, loginRequest.Password, false, false);
             if (!result.Succeeded)
             {
                 return new ResponseData<LoginResponse>
                 {
                     Success = false,
-                    Message = "Invalid email or password."
-                };
-            }
-            if (user.Is2FAEnabled)
-            {
-                var code = _factorAuthentication.GenerateAndSendTwoFactorTokenAsync(user);
-                return new ResponseData<LoginResponse>
-                {
-                    Success = true,
-                    Message = "Two-factor authentication required.",
-                    Data = new LoginResponse
-                    {
-                        UserId = user.Id,
-                        UserName = user.UserName,
-                        Is2FAEnabled = true
-                    }
+                    Message = "Invalid username or password."
                 };
             }
 
+            if (user.Is2FAEnabled)
+            {
+                try
+                {
+                    var code = await _factorAuthentication.GenerateAndSendTwoFactorTokenAsync(user);
+                    return new ResponseData<LoginResponse>
+                    {
+                        Success = true,
+                        Message = "Two-factor authentication required.",
+                        Data = new LoginResponse
+                        {
+                            UserId = user.Id,
+                            UserName = user.UserName,
+                            Is2FAEnabled = true
+                        }
+                    };
+                }
+                catch (Exception ex)
+                {
+                    return new ResponseData<LoginResponse>
+                    {
+                        Success = false,
+                        Message = $"Error generating or sending 2FA token: {ex.Message}"
+                    };
+                }
+            }
+
             var token = await _factorAuthentication.CreateToken(user);
+            if (string.IsNullOrEmpty(token))
+            {
+                return new ResponseData<LoginResponse>
+                {
+                    Success = false,
+                    Message = "Failed to generate authentication token."
+                };
+            }
+
             return new ResponseData<LoginResponse>
             {
                 Success = true,
@@ -66,6 +88,7 @@ namespace TwoStepAuthentication.Services
                 }
             };
         }
+
 
         public async Task<bool> LogoutAsync()
         {

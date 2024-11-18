@@ -1,10 +1,12 @@
 using Identity;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using SendGrid.Extensions.DependencyInjection;
 using System;
-using System.Security.Claims;
+using System.Text;
 using TwoStepAuthentication;
 using TwoStepAuthentication.Models;
 using TwoStepAuthentication.Services;
@@ -12,79 +14,89 @@ using TwoStepAuthentication.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Add services to the container
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
-builder.Services.AddCors(option =>
+// Configure CORS
+builder.Services.AddCors(options =>
 {
-    option.AddDefaultPolicy(policy =>
+    options.AddDefaultPolicy(policy =>
     {
         policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
     });
 });
 
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-builder.Services.AddAuthentication()
-                .AddBearerToken(IdentityConstants.BearerScheme);
-
-builder.Services
-    .AddAuthentication(IdentityConstants.ApplicationScheme)
-    .AddIdentityCookies();
-
-builder.Services.AddSendGrid(options =>
-    options.ApiKey = builder.Configuration.GetSection("SendGridKey:SendGridKey").Value
-);
-
-builder.Services.AddTransient<IEmailSender, EmailSender>();
-builder.Services.AddScoped<I2FactorAuthentication, _2FactorAuthentication>();
-builder.Services.AddScoped<IAuthService, AuthService>();
-
-builder.Services.AddAuthorizationBuilder();
-
+// Configure DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     options.UseSqlite("DataSource=app.db");
 });
 
-builder.Services.AddIdentityCore<AppUser>()
-    .AddEntityFrameworkStores<AppDbContext>()
-    .AddApiEndpoints();
-
-builder.Services.Configure<IdentityOptions>(opt =>
+// Configure Identity
+builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
 {
-    //Password settings
-    opt.Password.RequireDigit = true;
-    opt.Password.RequireLowercase = true;
-    opt.Password.RequireNonAlphanumeric = true;
-    opt.Password.RequireUppercase = true;
-    opt.Password.RequiredLength = 6;
-    opt.Password.RequiredUniqueChars = 1;
+    options.Password.RequireDigit = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireNonAlphanumeric = true;
+    options.Password.RequireUppercase = true;
+    options.Password.RequiredLength = 6;
+    options.Password.RequiredUniqueChars = 1;
 
-    //Lockout settings
-    opt.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
-    opt.Lockout.MaxFailedAccessAttempts = 5;
-    opt.Lockout.AllowedForNewUsers = true;
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.Lockout.AllowedForNewUsers = true;
 
-    //User settings
-    opt.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
-    opt.User.RequireUniqueEmail = false;
+    options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+    options.User.RequireUniqueEmail = true;
 
-    //2FA settings
-    opt.SignIn.RequireConfirmedEmail = true;
-    opt.Tokens.AuthenticatorTokenProvider = TokenOptions.DefaultAuthenticatorProvider;
+    options.SignIn.RequireConfirmedEmail = true;
+    options.Tokens.AuthenticatorTokenProvider = TokenOptions.DefaultAuthenticatorProvider;
+
+})
+.AddEntityFrameworkStores<AppDbContext>()
+.AddDefaultTokenProviders();
+
+// Remove Cookie Authentication (since we're using JWT)
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Auth/Login";
 });
+
+// Configure JWT Authentication
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+    };
+});
+
+// Register application services
+builder.Services.AddTransient<IEmailSender, EmailSender>();
+builder.Services.AddScoped<I2FactorAuthentication, _2FactorAuthentication>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+
+// Configure SendGrid
+builder.Services.AddSendGrid(options =>
+    options.ApiKey = builder.Configuration.GetSection("SendGridKey:SendGridKey").Value
+);
 
 var app = builder.Build();
 
-//app.MapIdentityApi<AppUser>();
-
-app.Map("/", (ClaimsPrincipal user) => $"Hello {user.Identity!.Name} ")
-    .RequireAuthorization();
-
-// Configure the HTTP request pipeline.
+// Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -92,11 +104,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseCors();
 
 app.UseAuthentication();
-
 app.UseAuthorization();
 
 app.MapControllers();

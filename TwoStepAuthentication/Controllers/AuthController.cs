@@ -95,8 +95,8 @@ namespace TwoStepAuthentication.Controllers
             return BadRequest("Error resetting password.");
         }
 
-        [Authorize]
         [HttpPost("change-password")]
+        [Authorize]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
         {
             var user = await _userManager.GetUserAsync(User);

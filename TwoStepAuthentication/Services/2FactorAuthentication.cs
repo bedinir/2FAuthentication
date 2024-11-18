@@ -24,7 +24,7 @@ namespace TwoStepAuthentication.Services
             _emailSender = emailSender;
             _userManager = userManager;
             _config = config;
-            _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JWT:Secret"].ToCharArray()));
+            _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"].ToCharArray()));
         }
 
         public async Task<string> CreateToken(AppUser user)
@@ -33,7 +33,8 @@ namespace TwoStepAuthentication.Services
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Email,user.Email),
-                new Claim(ClaimTypes.GivenName, user.Lastname)
+                new Claim(ClaimTypes.GivenName, user.Lastname),
+                new Claim(ClaimTypes.NameIdentifier, user.Id)
             };
 
             var creds = new SigningCredentials(_key, SecurityAlgorithms.HmacSha512Signature);
@@ -43,7 +44,8 @@ namespace TwoStepAuthentication.Services
                 Subject = new ClaimsIdentity(claims),
                 Expires = DateTime.Now.AddDays(7),
                 SigningCredentials = creds,
-                Issuer = _config["JWT:ValidIssuer"]
+                Issuer = _config["JWT:Issuer"],
+                Audience = _config["JWT:Audience"]
             };
 
             var tokenHandler = new JwtSecurityTokenHandler();
