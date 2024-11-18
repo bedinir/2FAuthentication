@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SendGrid.Extensions.DependencyInjection;
 using System;
-using System.Security.Claims;
 using System.Text;
 using TwoStepAuthentication;
 using TwoStepAuthentication.Models;
@@ -15,21 +14,57 @@ using TwoStepAuthentication.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
+// Add services to the container
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddCors(option =>
+// Configure CORS
+builder.Services.AddCors(options =>
 {
-    option.AddDefaultPolicy(policy =>
+    options.AddDefaultPolicy(policy =>
     {
         policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
     });
 });
 
+// Configure DbContext
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    options.UseSqlite("DataSource=app.db");
+});
+
+// Configure Identity
+builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
+{
+    options.Password.RequireDigit = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireNonAlphanumeric = true;
+    options.Password.RequireUppercase = true;
+    options.Password.RequiredLength = 6;
+    options.Password.RequiredUniqueChars = 1;
+
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.Lockout.AllowedForNewUsers = true;
+
+    options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+    options.User.RequireUniqueEmail = true;
+
+    options.SignIn.RequireConfirmedEmail = true;
+    options.Tokens.AuthenticatorTokenProvider = TokenOptions.DefaultAuthenticatorProvider;
+
+})
+.AddEntityFrameworkStores<AppDbContext>()
+.AddDefaultTokenProviders();
+
+// Remove Cookie Authentication (since we're using JWT)
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Auth/Login";
+});
+
+// Configure JWT Authentication
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -49,53 +84,19 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddAuthorizationBuilder();
-
-
-builder.Services.AddDbContext<AppDbContext>(options =>
-{
-    options.UseSqlite("DataSource=app.db");
-});
-
-builder.Services.AddIdentity<AppUser, IdentityRole>()
-    .AddEntityFrameworkStores<AppDbContext>()
-    .AddDefaultTokenProviders();
-
-builder.Services.AddSendGrid(options =>
-    options.ApiKey = builder.Configuration.GetSection("SendGridKey:SendGridKey").Value
-);
-
+// Register application services
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 builder.Services.AddScoped<I2FactorAuthentication, _2FactorAuthentication>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
-builder.Services.Configure<IdentityOptions>(opt =>
-{
-    //Password settings
-    opt.Password.RequireDigit = true;
-    opt.Password.RequireLowercase = true;
-    opt.Password.RequireNonAlphanumeric = true;
-    opt.Password.RequireUppercase = true;
-    opt.Password.RequiredLength = 6;
-    opt.Password.RequiredUniqueChars = 1;
-
-    //Lockout settings
-    opt.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
-    opt.Lockout.MaxFailedAccessAttempts = 5;
-    opt.Lockout.AllowedForNewUsers = true;
-
-    //User settings
-    opt.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
-    opt.User.RequireUniqueEmail = false;
-
-    //2FA settings
-    opt.SignIn.RequireConfirmedEmail = true;
-    opt.Tokens.AuthenticatorTokenProvider = TokenOptions.DefaultAuthenticatorProvider;
-});
+// Configure SendGrid
+builder.Services.AddSendGrid(options =>
+    options.ApiKey = builder.Configuration.GetSection("SendGridKey:SendGridKey").Value
+);
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -103,11 +104,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseCors();
 
 app.UseAuthentication();
-
 app.UseAuthorization();
 
 app.MapControllers();
