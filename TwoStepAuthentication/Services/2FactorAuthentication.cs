@@ -35,17 +35,19 @@ namespace TwoStepAuthentication.Services
             // A token contains claims for a user
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Email,user.Email),
+                new Claim(ClaimTypes.Email, user.Email),
                 new Claim(ClaimTypes.GivenName, user.Lastname),
                 new Claim(ClaimTypes.NameIdentifier, user.Id)
             };
 
             var creds = new SigningCredentials(_key, SecurityAlgorithms.HmacSha512Signature);
 
-            var tokenDiscription = new SecurityTokenDescriptor
+            var expiresAtUtc = DateTime.UtcNow.AddDays(7);
+
+            var tokenDescription = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.Now.AddDays(7),
+                Expires = expiresAtUtc,
                 SigningCredentials = creds,
                 Issuer = _config["JWT:Issuer"],
                 Audience = _config["JWT:Audience"]
@@ -53,9 +55,11 @@ namespace TwoStepAuthentication.Services
 
             var tokenHandler = new JwtSecurityTokenHandler();
 
-            var token = tokenHandler.CreateToken(tokenDiscription);
+            var token = tokenHandler.CreateToken(tokenDescription);
 
-            return tokenHandler.WriteToken(token);
+            var jwtToken = tokenHandler.WriteToken(token);
+
+            return (jwtToken, expiresAtUtc);
         }
 
         public string GenerateRefreshToken()
