@@ -44,7 +44,7 @@ namespace TwoStepAuthentication.Controllers
         [HttpPost("verify-2fa")]
         public async Task<IActionResult> VerifyTwoFactorCode([FromBody] Verify2FARequest request)
         {
-            var user = await _userManager.FindByNameAsync(request.Username);
+            var user = await _userManager.FindByEmailAsync(request.Username);
             if(user == null)
             {
                 return BadRequest("User not found.");
@@ -57,12 +57,12 @@ namespace TwoStepAuthentication.Controllers
             }
 
             //var token = await _signInManager.CreateUserPrincipalAsync(user);
-            var token = _auth.CreateToken(user).Result;
+            (var jwttoken, DateTime dateExpired) = _auth.CreateToken(user).Result;
 
             return Ok(new
             {
                 Message = "2FA verification successful.",
-                Token = token // Return the generated token
+                Token = jwttoken // Return the generated token
             });
         }
 
