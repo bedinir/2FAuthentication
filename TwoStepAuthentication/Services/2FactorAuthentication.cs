@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using TwoStepAuthentication.Models;
 using TwoStepAuthentication.Services.Interfaces;
@@ -11,6 +12,7 @@ namespace TwoStepAuthentication.Services
 {
     public class _2FactorAuthentication : I2FactorAuthentication
     {
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly UserManager<AppUser> _userManager;
         private readonly SignInManager<AppUser> _signInManager;
         private readonly IEmailSender _emailSender;
@@ -18,16 +20,17 @@ namespace TwoStepAuthentication.Services
 
         // we have to create a symmetric security kee so that we can sign the token 
         private readonly SymmetricSecurityKey _key;
-        public _2FactorAuthentication(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, IEmailSender emailSender, IConfiguration config)
+        public _2FactorAuthentication(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, IEmailSender emailSender, IConfiguration config, IHttpContextAccessor httpContextAccessor)
         {
             _signInManager = signInManager;
             _emailSender = emailSender;
             _userManager = userManager;
+            _httpContextAccessor = httpContextAccessor;
             _config = config;
             _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"].ToCharArray()));
         }
 
-        public async Task<string> CreateToken(AppUser user)
+        public async Task<(string jwtToken, DateTime expiresAtUtc)> CreateToken(AppUser user)
         {
             // A token contains claims for a user
             var claims = new List<Claim>
@@ -53,6 +56,27 @@ namespace TwoStepAuthentication.Services
             var token = tokenHandler.CreateToken(tokenDiscription);
 
             return tokenHandler.WriteToken(token);
+        }
+
+        public string GenerateRefreshToken()
+        {
+            var randomNumber = new byte[64];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomNumber);
+            return Convert.ToBase64String(randomNumber);
+        }
+
+        public void WriteAuthTokenAsHttpOnlyCookie(string cookieName, string token, DateTime expiration)
+        {
+            _httpContextAccessor.HttpContext.Response.Cookies.Append(cookieName,
+                token, new CookieOptions
+                {
+                    HttpOnly = true,
+                    Expires = expiration,
+                    IsEssential = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.Strict
+                });
         }
 
         public async Task<bool> DisableTwoFactorAuthentication(AppUser user)

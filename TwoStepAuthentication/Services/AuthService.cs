@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using TwoStepAuthentication.Models;
+using TwoStepAuthentication.Repositories;
 using TwoStepAuthentication.Services.Interfaces;
 
 namespace TwoStepAuthentication.Services
@@ -10,27 +11,22 @@ namespace TwoStepAuthentication.Services
         private readonly UserManager<AppUser> _userManager;
         private readonly I2FactorAuthentication _factorAuthentication;
         private readonly RoleManager<IdentityRole> _roleManager;
-        public AuthService(UserManager<AppUser> userManager,SignInManager<AppUser> signInManager,I2FactorAuthentication factorAuthentication, RoleManager<IdentityRole> roleManager)
+        private readonly IUserRepository _userRepository;
+        public AuthService(UserManager<AppUser> userManager,SignInManager<AppUser> signInManager,I2FactorAuthentication factorAuthentication, RoleManager<IdentityRole> roleManager, IUserRepository userRepository)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _factorAuthentication = factorAuthentication;
             _roleManager = roleManager;
+            _userRepository = userRepository;
         }
 
         public async Task<ResponseData<LoginResponse>> Login(LoginRequest loginRequest)
         {
             var user = await _userManager.FindByEmailAsync(loginRequest.Username);
-            if (user == null)
-            {
-                return new ResponseData<LoginResponse>
-                {
-                    Success = false,
-                    Message = "User not found."
-                };
-            }
+            bool isValid = await _userManager.CheckPasswordAsync(user, loginRequest.Password);
 
-            if (user == null || !await _userManager.CheckPasswordAsync(user, loginRequest.Password))
+            if (user == null || isValid == false)
             {
                 return new ResponseData<LoginResponse>
                 {
@@ -38,6 +34,7 @@ namespace TwoStepAuthentication.Services
                     Message = "Invalid username or password."
                 };
             }
+
 
             if (user.Is2FAEnabled)
             {
@@ -67,6 +64,7 @@ namespace TwoStepAuthentication.Services
             }
 
             var token = await _factorAuthentication.CreateToken(user);
+
             if (string.IsNullOrEmpty(token))
             {
                 return new ResponseData<LoginResponse>
@@ -75,6 +73,7 @@ namespace TwoStepAuthentication.Services
                     Message = "Failed to generate authentication token."
                 };
             }
+            
 
             return new ResponseData<LoginResponse>
             {
@@ -201,6 +200,39 @@ namespace TwoStepAuthentication.Services
                 return true;
             }
             return false;
+        }
+
+        public async Task RefreshTokenAsync(string? refreshToken)
+        {
+            if (string.IsNullOrEmpty(refreshToken))
+            {
+                throw new Exception("Refresh token is missing.");
+            }
+
+            var user = await _userRepository.GetUserByRefreshTokenAsync(refreshToken);
+
+            if (user == null)
+            {
+                throw new Exception("Unable to retrieve user for refresh token");
+            }
+
+            if (user.RefreshTokenExpiresAtUtc < DateTime.UtcNow)
+            {
+                throw new Exception("Refresh token is expired.");
+            }
+
+            var token = await _factorAuthentication.CreateToken(user);
+            var refreshTokenValue = _factorAuthentication.GenerateRefreshToken();
+
+            var refreshTokenExpirationDateInUtc = DateTime.UtcNow.AddDays(7);
+
+            user.RefreshToken = refreshTokenValue;
+            user.RefreshTokenExpiresAtUtc = refreshTokenExpirationDateInUtc;
+
+            await _userManager.UpdateAsync(user);
+
+            _factorAuthentication.WriteAuthTokenAsHttpOnlyCookie("ACCESS_TOKEN", token);
+            _factorAuthentication.WriteAuthTokenAsHttpOnlyCookie("REFRESH_TOKEN", user.RefreshToken, refreshTokenExpirationDateInUtc);
         }
     }
 }
