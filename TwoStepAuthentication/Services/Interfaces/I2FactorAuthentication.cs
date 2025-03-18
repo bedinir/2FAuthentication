@@ -10,6 +10,7 @@ namespace TwoStepAuthentication.Services.Interfaces
         Task<string> GenerateAndSendTwoFactorTokenAsync(AppUser user);
         Task<(string jwtToken, DateTime expiresAtUtc)> CreateToken(AppUser user);
         string GenerateRefreshToken();
+        Task RefreshTokenAsync(string? refreshToken);
         void WriteAuthTokenAsHttpOnlyCookie(string cookieName, string token, DateTime expiration);
     }
 }

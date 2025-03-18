@@ -63,7 +63,7 @@ namespace TwoStepAuthentication.Services
                 }
             }
 
-            var token = await _factorAuthentication.CreateToken(user);
+            (var token, DateTime date) = await _factorAuthentication.CreateToken(user);
 
             if (string.IsNullOrEmpty(token))
             {
@@ -73,7 +73,18 @@ namespace TwoStepAuthentication.Services
                     Message = "Failed to generate authentication token."
                 };
             }
+
+            var refreshTokenValue = _factorAuthentication.GenerateRefreshToken();
+
+            var refreshTokenExpirationDateInUtc = DateTime.UtcNow.AddDays(1);
+
+            user.RefreshToken = refreshTokenValue;
+            user.RefreshTokenExpiresAtUtc = refreshTokenExpirationDateInUtc;
+
+            await _userManager.UpdateAsync(user);
             
+            _factorAuthentication.WriteAuthTokenAsHttpOnlyCookie("ACCESS_TOKEN", token, date);
+            _factorAuthentication.WriteAuthTokenAsHttpOnlyCookie("REFRESH_TOKEN", refreshTokenValue, refreshTokenExpirationDateInUtc);
 
             return new ResponseData<LoginResponse>
             {
@@ -202,37 +213,5 @@ namespace TwoStepAuthentication.Services
             return false;
         }
 
-        public async Task RefreshTokenAsync(string? refreshToken)
-        {
-            if (string.IsNullOrEmpty(refreshToken))
-            {
-                throw new Exception("Refresh token is missing.");
-            }
-
-            var user = await _userRepository.GetUserByRefreshTokenAsync(refreshToken);
-
-            if (user == null)
-            {
-                throw new Exception("Unable to retrieve user for refresh token");
-            }
-
-            if (user.RefreshTokenExpiresAtUtc < DateTime.UtcNow)
-            {
-                throw new Exception("Refresh token is expired.");
-            }
-
-            var token = await _factorAuthentication.CreateToken(user);
-            var refreshTokenValue = _factorAuthentication.GenerateRefreshToken();
-
-            var refreshTokenExpirationDateInUtc = DateTime.UtcNow.AddDays(7);
-
-            user.RefreshToken = refreshTokenValue;
-            user.RefreshTokenExpiresAtUtc = refreshTokenExpirationDateInUtc;
-
-            await _userManager.UpdateAsync(user);
-
-            _factorAuthentication.WriteAuthTokenAsHttpOnlyCookie("ACCESS_TOKEN", token);
-            _factorAuthentication.WriteAuthTokenAsHttpOnlyCookie("REFRESH_TOKEN", user.RefreshToken, refreshTokenExpirationDateInUtc);
-        }
     }
 }

@@ -6,6 +6,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using TwoStepAuthentication.Models;
+using TwoStepAuthentication.Repositories;
 using TwoStepAuthentication.Services.Interfaces;
 
 namespace TwoStepAuthentication.Services
@@ -17,10 +18,11 @@ namespace TwoStepAuthentication.Services
         private readonly SignInManager<AppUser> _signInManager;
         private readonly IEmailSender _emailSender;
         private readonly IConfiguration _config;
+        private readonly IUserRepository _userRepository;
 
         // we have to create a symmetric security kee so that we can sign the token 
         private readonly SymmetricSecurityKey _key;
-        public _2FactorAuthentication(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, IEmailSender emailSender, IConfiguration config, IHttpContextAccessor httpContextAccessor)
+        public _2FactorAuthentication(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, IEmailSender emailSender, IConfiguration config, IHttpContextAccessor httpContextAccessor, IUserRepository userRepository)
         {
             _signInManager = signInManager;
             _emailSender = emailSender;
@@ -28,6 +30,7 @@ namespace TwoStepAuthentication.Services
             _httpContextAccessor = httpContextAccessor;
             _config = config;
             _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"].ToCharArray()));
+            _userRepository = userRepository;
         }
 
         public async Task<(string jwtToken, DateTime expiresAtUtc)> CreateToken(AppUser user)
@@ -68,6 +71,39 @@ namespace TwoStepAuthentication.Services
             using var rng = RandomNumberGenerator.Create();
             rng.GetBytes(randomNumber);
             return Convert.ToBase64String(randomNumber);
+        }
+
+        public async Task RefreshTokenAsync(string? refreshToken)
+        {
+            if (string.IsNullOrEmpty(refreshToken))
+            {
+                throw new Exception("Refresh token is missing.");
+            }
+
+            var user = await _userRepository.GetUserByRefreshTokenAsync(refreshToken);
+
+            if (user == null)
+            {
+                throw new Exception("Unable to retrieve user for refresh token");
+            }
+
+            if (user.RefreshTokenExpiresAtUtc < DateTime.UtcNow)
+            {
+                throw new Exception("Refresh token is expired.");
+            }
+
+            (var token, DateTime dateExpired )= await CreateToken(user);
+            var refreshTokenValue = GenerateRefreshToken();
+
+            var refreshTokenExpirationDateInUtc = DateTime.UtcNow.AddDays(7);
+
+            user.RefreshToken = refreshTokenValue;
+            user.RefreshTokenExpiresAtUtc = refreshTokenExpirationDateInUtc;
+
+            await _userManager.UpdateAsync(user);
+
+            WriteAuthTokenAsHttpOnlyCookie("ACCESS_TOKEN", token, dateExpired);
+            WriteAuthTokenAsHttpOnlyCookie("REFRESH_TOKEN", user.RefreshToken, refreshTokenExpirationDateInUtc);
         }
 
         public void WriteAuthTokenAsHttpOnlyCookie(string cookieName, string token, DateTime expiration)
