@@ -11,8 +11,8 @@ using TwoStepAuthentication;
 namespace TwoStepAuthentication.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250318122217_RefreshTokenMigration")]
-    partial class RefreshTokenMigration
+    [Migration("20250318193620_InitialMigrations")]
+    partial class InitialMigrations
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
