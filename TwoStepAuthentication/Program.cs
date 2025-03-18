@@ -34,7 +34,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite("DataSource=app.db");
 });
 
-// Configure Identity
+// Adding Identity services
 builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
 {
     options.Password.RequireDigit = true;
@@ -64,7 +64,7 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.LoginPath = "/Auth/Login";
 });
 
-// Configure JWT Authentication
+// Adding Authentication
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

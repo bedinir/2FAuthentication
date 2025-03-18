@@ -73,6 +73,38 @@ namespace TwoStepAuthentication.Controllers
             };
         }
 
+        [HttpPost("register")]
+        public async Task<ResponseData<RegisterResponse>> Register([FromBody] RegisterRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return new ResponseData<RegisterResponse>
+                {
+                    Success = false,
+                    Message = "Invalid registration request."
+                };
+            }
+            var response = await _authService.Register(request);
+            if (!response.Success)
+            {
+                return new ResponseData<RegisterResponse>
+                {
+                    Success = false,
+                    Message = response.Message
+                };
+            }
+            return new ResponseData<RegisterResponse>
+            {
+                Success = response.Success,
+                Message = response.Message,
+                Data = new RegisterResponse
+                {
+                    UserId = response.Data.UserId,
+                    UserName = response.Data.UserName
+                }
+            };
+        }
+
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {
